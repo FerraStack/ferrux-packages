@@ -39,13 +39,14 @@ termux_step_get_source() {
 		export PATH="${TMP_CHECKOUT}/prefix/usr/bin:${PATH//$HOME\/.cargo\/bin/}"
 
 		local -a ubuntu_packages=(
-			"libncurses5"
+			# For libtinfo.so.5
 			"libtinfo5"
-			"openssh-client"
+			# for libncurses.so.5
+			"libncurses5"
 		)
 
 		DESTINATION="${TMP_CHECKOUT}/prefix" \
-		UBUNTU_RELEASE=jammy \
+		UBUNTU_RELEASE="jammy" \
 		termux_download_ubuntu_packages "${ubuntu_packages[@]}"
 
 		termux_download https://storage.googleapis.com/git-repo-downloads/repo "${TERMUX_PKG_CACHEDIR}/repo" SKIP_CHECKSUM
@@ -107,17 +108,10 @@ termux_step_make() {
 		set -e;
 		cd ${TERMUX_PKG_SRCDIR}
 		source build/envsetup.sh;
-<<<<<<< HEAD
 		lunch aosp_${_ARCH}-aosp_current-eng;
 		export ALLOW_MISSING_DEPENDENCIES=true
 		make linker libc libm libdl libdl_android debuggerd crash_dump
 		make toybox sh mkshrc ping ping6 tracepath tracepath6 traceroute6 arping
-=======
-		lunch aosp_${_AOSP_ARCH}-eng;
-		export ALLOW_MISSING_DEPENDENCIES=true
-		make linker libc libm libdl libicuuc debuggerd crash_dump
-		make toybox grep sh mkshrc ping ping6 tracepath tracepath6 traceroute6 arping
->>>>>>> upstream/master
 	"
 }
 
