@@ -4,7 +4,7 @@
 : "${TMPDIR:=/tmp}"
 export TMPDIR
 
-set -e -o pipefail -u
+set -euo pipefail
 
 cd "$(realpath "$(dirname "$0")")"
 TERMUX_SCRIPTDIR=$(pwd)
