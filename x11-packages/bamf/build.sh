@@ -4,7 +4,10 @@ TERMUX_PKG_LICENSE="GPL-3.0, LGPL-2.1, LGPL-3.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="0.5.6"
 TERMUX_PKG_REVISION=2
-TERMUX_PKG_SRCURL="https://launchpad.net/bamf/${TERMUX_PKG_VERSION%.*}/${TERMUX_PKG_VERSION}/+download/bamf-${TERMUX_PKG_VERSION}.tar.gz"
+# Upstream tarball is hosted on launchpadlibrarian.net, which is unreachable from
+# some networks, so use the Void Linux distfiles mirror (identical tarball):
+# https://launchpad.net/bamf/${TERMUX_PKG_VERSION%.*}/${TERMUX_PKG_VERSION}/+download/bamf-${TERMUX_PKG_VERSION}.tar.gz
+TERMUX_PKG_SRCURL="https://sources.voidlinux.org/bamf-${TERMUX_PKG_VERSION}/bamf-${TERMUX_PKG_VERSION}.tar.gz"
 TERMUX_PKG_SHA256=4fcd00f23c542f3b79f35e10e322b67eacb399cac83f48db261cd8e8ea709478
 TERMUX_PKG_DEPENDS="bash, gdk-pixbuf, glib, gtk3, libgtop, libwnck, libx11, startup-notification"
 TERMUX_PKG_BUILD_DEPENDS="glib, gnome-common, gobject-introspection, valac, python-lxml, autoconf, automake, libtool, gtk-doc"

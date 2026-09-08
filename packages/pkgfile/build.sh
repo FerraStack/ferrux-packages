@@ -7,7 +7,7 @@ TERMUX_PKG_SRCURL=https://github.com/falconindy/pkgfile/archive/refs/tags/v${TER
 TERMUX_PKG_SHA256=8c6c558ebec32a6d40ba90a18a06328e382c0639879ae02dd83dfa03a5d51988
 TERMUX_PKG_AUTO_UPDATE=true
 TERMUX_PKG_UPDATE_TAG_TYPE="newest-tag"
-TERMUX_PKG_DEPENDS="libarchive, libcurl, pcre"
+TERMUX_PKG_DEPENDS="libandroid-glob, libandroid-utimes, libarchive, libcurl, pcre"
 TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
 -Dsystemd_units=false
 "

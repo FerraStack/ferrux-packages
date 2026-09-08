@@ -34,8 +34,15 @@ termux_setup_bpc() {
 		_BPC_FOLDER="${TERMUX_COMMON_CACHEDIR}/bpc-${_BPC_VERSION}"
 	fi
 
-	if [ ! -d "$_BPC_FOLDER" ]; then
+	# Debian's python uses the "posix_local" sysconfig scheme, so meson would install the
+	# blueprintcompiler module to "$_BPC_FOLDER/local/lib/pythonX.Y/dist-packages", which is
+	# never on sys.path for a custom prefix. Force a fixed location we can point PYTHONPATH at.
+	local _BPC_PYTHONDIR="lib/python3/site-packages"
+
+	if [ ! -d "$_BPC_FOLDER/$_BPC_PYTHONDIR/blueprintcompiler" ]; then
 	(
+		rm -rf "$_BPC_FOLDER"
+
 		termux_download "$_BPC_SRCURL" "$_BPC_SRCARCHIVE" "$_BPC_SHA256"
 
 		rm -Rf "$_BPC_SRCDIR"
@@ -45,12 +52,14 @@ termux_setup_bpc() {
 		AR=;CC=;CFLAGS=;CPPFLAGS=;CXX=;CXXFLAGS=;LD=;LDFLAGS=;PKG_CONFIG=;STRIP=
 		termux_setup_meson
 		unset AR CC CFLAGS CPPFLAGS CXX CXXFLAGS LD LDFLAGS PKG_CONFIG STRIP
-		${TERMUX_MESON} setup "$_BPC_SRCDIR" "$_BPC_SRCDIR/build" --prefix "$_BPC_FOLDER"
+		${TERMUX_MESON} setup "$_BPC_SRCDIR" "$_BPC_SRCDIR/build" --prefix "$_BPC_FOLDER" \
+			-Dpython.purelibdir="$_BPC_PYTHONDIR"
 		ninja -C "$_BPC_SRCDIR/build" -j "$TERMUX_PKG_MAKE_PROCESSES"
 		ninja -C "$_BPC_SRCDIR/build" install
 	)
 	fi
 
 	export PATH="$_BPC_FOLDER/bin:$PATH"
+	export PYTHONPATH="$_BPC_FOLDER/$_BPC_PYTHONDIR${PYTHONPATH:+:$PYTHONPATH}"
 	export GI_TYPELIB_PATH="$TERMUX_PREFIX/lib/girepository-1.0"
 }

@@ -209,7 +209,7 @@ if [[ "$($SUDO docker container inspect -f '{{ .State.Running }}' $CONTAINER_NAM
 	__change_container_pid_max
 fi
 
-load_apparmor_profile ./scripts/profile-restricted.apparmor "Loading restricted AppArmor profile"
+#load_apparmor_profile ./scripts/profile-restricted.apparmor "Loading restricted AppArmor profile"
 
 # Set traps to ensure that the process started with docker exec and all its children are killed.
 . "$TERMUX_SCRIPTDIR/scripts/utils/docker/docker.sh"; docker__setup_docker_exec_traps

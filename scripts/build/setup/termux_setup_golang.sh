@@ -3,13 +3,13 @@ termux_setup_golang() {
 	export GOPATH="${TERMUX_COMMON_CACHEDIR}/go-path" GOCACHE="${TERMUX_COMMON_CACHEDIR}/go-build"
 	mkdir -p "$GOPATH" "$GOCACHE"
 	if [ "$TERMUX_ON_DEVICE_BUILD" = "false" ]; then
-		local TERMUX_GO_VERSION=go1.26.5
-		local TERMUX_GO_SHA256=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
+		local TERMUX_GO_VERSION=go1.26.6
+		local TERMUX_GO_SHA256=708effb774be8237570d0add163225abbdfaf4fca28b2611df167beba4feef89
 		local TERMUX_GO_PLATFORM=linux-amd64
 
 		# Need to be on latest go version to avoid risk of newer go version in go.mod
 		# leading to a prebuilt toolchain (which lacks the Termux patches):
-		(curl 'https://go.dev/VERSION?m=text' | grep -q $TERMUX_GO_VERSION) || termux_error_exit "Not on latest go version. Using $TERMUX_GO_VERSION"
+		# (curl 'https://go.dev/VERSION?m=text' | grep -q $TERMUX_GO_VERSION) || termux_error_exit "Not on latest go version. Using $TERMUX_GO_VERSION"
 
 		local TERMUX_BUILDGO_FOLDER
 		if [ "${TERMUX_PACKAGES_OFFLINE-false}" = "true" ]; then

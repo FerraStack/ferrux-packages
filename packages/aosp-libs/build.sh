@@ -13,6 +13,7 @@ external/iputils/NOTICE
 "
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="16.0.0_r4"
+TERMUX_PKG_REVISION=1
 TERMUX_PKG_AUTO_UPDATE=false
 TERMUX_PKG_BUILD_IN_SRC=true
 TERMUX_PKG_SKIP_SRC_EXTRACT=true
@@ -27,49 +28,6 @@ TERMUX_PKG_REPLACES="bionic-host"
 TERMUX_PKG_ON_DEVICE_BUILD_NOT_SUPPORTED=true
 
 termux_step_get_source() {
-	local TMP_CHECKOUT="$TERMUX_PKG_CACHEDIR/tmp-checkout"
-	local TMP_CHECKOUT_VERSION="$TERMUX_PKG_CACHEDIR/tmp-checkout-version"
-
-	if [[ ! -f "$TMP_CHECKOUT_VERSION" || "$(cat $TMP_CHECKOUT_VERSION)" != "$TERMUX_PKG_VERSION" ]]; then
-		echo "Downloading AOSP source from '$TERMUX_PKG_SRCURL'"
-
-		rm -rf "$TMP_CHECKOUT"
-
-		export LD_LIBRARY_PATH="${TMP_CHECKOUT}/prefix/lib/x86_64-linux-gnu:${TMP_CHECKOUT}/prefix/usr/lib/x86_64-linux-gnu"
-		export PATH="${TMP_CHECKOUT}/prefix/usr/bin:${PATH//$HOME\/.cargo\/bin/}"
-
-		local -a ubuntu_packages=(
-			# For libtinfo.so.5
-			"libtinfo5"
-			# for libncurses.so.5
-			"libncurses5"
-		)
-
-		DESTINATION="${TMP_CHECKOUT}/prefix" \
-		UBUNTU_RELEASE="jammy" \
-		termux_download_ubuntu_packages "${ubuntu_packages[@]}"
-
-		termux_download https://storage.googleapis.com/git-repo-downloads/repo "${TERMUX_PKG_CACHEDIR}/repo" SKIP_CHECKSUM
-		chmod +x "${TERMUX_PKG_CACHEDIR}/repo"
-
-		pushd "$TMP_CHECKOUT"
-
-		# Repo requires us to have a Git user name and email set.
-		# The GitHub workflow does this, but the local build container doesn't
-		[[ "$(git config --get user.name)" != '' ]] || git config --global user.name "Termux Github Actions"
-		[[ "$(git config --get user.email)" != '' ]] || git config --global user.email "contact@termux.dev"
-		"${TERMUX_PKG_CACHEDIR}"/repo init \
-			-u "${TERMUX_PKG_SRCURL}" \
-			-b main -m "${TERMUX_PKG_BUILDER_DIR}/default.xml" <<< 'n'
-		"${TERMUX_PKG_CACHEDIR}"/repo sync -c -j32
-
-		popd
-
-		echo "$TERMUX_PKG_VERSION" > "$TMP_CHECKOUT_VERSION"
-	else
-		echo "Skipped downloading of AOSP source from '$TERMUX_PKG_SRCURL'"
-	fi
-
 	termux_download https://storage.googleapis.com/git-repo-downloads/repo "${TERMUX_PKG_CACHEDIR}/repo" SKIP_CHECKSUM
 	chmod +x "${TERMUX_PKG_CACHEDIR}/repo"
 
@@ -95,6 +53,13 @@ termux_step_get_source() {
 		termux_error_exit "Repo sync failed"
 }
 
+termux_step_pre_configure() {
+	# GNU patch defaults to --backup-if-mismatch, so hunks that apply with an
+	# offset leave *.orig backups behind. bionic/libc/Android.bp globs
+	# "dns/**/*.c*", which would make soong try to compile those backups.
+	find "${TERMUX_PKG_SRCDIR}/bionic" -name '*.orig' -delete
+}
+
 termux_step_make() {
 	case "${TERMUX_ARCH}" in
 		i686) _ARCH=x86 ;;
@@ -116,6 +81,10 @@ termux_step_make() {
 }
 
 termux_step_make_install() {
+	# "cp -r src/system dst/system" nests as "dst/system/system" when the
+	# destination already exists, which happens whenever a previous version of
+	# this package is installed in the build prefix. Start from a clean slate.
+	rm -rf "${TERMUX_PREFIX}/opt/aosp"
 	mkdir -p "${TERMUX_PREFIX}/opt/aosp/"
 	cp -r "${TERMUX_PKG_SRCDIR}"/out/target/product/generic*/system "${TERMUX_PREFIX}/opt/aosp/system"
 	cp -r "${TERMUX_PKG_SRCDIR}"/out/target/product/generic*/apex "${TERMUX_PREFIX}/opt/aosp/apex"
