@@ -2,9 +2,9 @@ TERMUX_PKG_HOMEPAGE=https://github.com/getzola/zola
 TERMUX_PKG_DESCRIPTION="A fast static site generator in a single binary with everything built-in."
 TERMUX_PKG_LICENSE="MIT"
 TERMUX_PKG_MAINTAINER="@termux"
-TERMUX_PKG_VERSION="0.23.2"
+TERMUX_PKG_VERSION="0.23.4"
 TERMUX_PKG_SRCURL="https://github.com/getzola/zola/archive/refs/tags/v${TERMUX_PKG_VERSION}.tar.gz"
-TERMUX_PKG_SHA256=f46f911079913845e76f3c446eb99d3b27546a3c302a1c411c6995fef498eaff
+TERMUX_PKG_SHA256=b8eb945dbafe1e73f1601c215ef1563b9b0a25097576ba48f646db8d75568e40
 TERMUX_PKG_AUTO_UPDATE=true
 TERMUX_PKG_BUILD_IN_SRC=true
 

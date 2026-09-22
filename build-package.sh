@@ -110,11 +110,6 @@ source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_ghc_iserv.sh"
 # shellcheck source=scripts/build/setup/termux_setup_cabal.sh
 source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_cabal.sh"
 
-# Utility function to setup jailbreak-cabal. It is used to remove version constraints
-# from Cabal packages.
-# shellcheck source=scripts/build/setup/termux_setup_jailbreak_cabal.sh
-source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_jailbreak_cabal.sh"
-
 # Utility function for setting up GObject Introspection cross environment.
 # shellcheck source=scripts/build/setup/termux_setup_gir.sh
 source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_gir.sh"
@@ -166,6 +161,10 @@ source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_ninja.sh"
 # Utility function to setup Node.js JavaScript Runtime
 # shellcheck source=scripts/build/setup/termux_setup_nodejs.sh
 source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_nodejs.sh"
+
+# Utility function to setup Bun JavaScript runtime/package manager
+# shellcheck source=scripts/build/setup/termux_setup_bun.sh
+source "$TERMUX_SCRIPTDIR/scripts/build/setup/termux_setup_bun.sh"
 
 # Utility function to setup a current meson build system.
 # shellcheck source=scripts/build/setup/termux_setup_meson.sh
