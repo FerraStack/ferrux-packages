@@ -2,14 +2,12 @@ TERMUX_PKG_HOMEPAGE=https://www.samba.org/
 TERMUX_PKG_DESCRIPTION="SMB/CIFS fileserver"
 TERMUX_PKG_LICENSE="GPL-3.0"
 TERMUX_PKG_MAINTAINER="@termux"
-TERMUX_PKG_VERSION=4.20.8
-TERMUX_PKG_REVISION=1
+TERMUX_PKG_VERSION="4.24.6"
 TERMUX_PKG_SRCURL=https://download.samba.org/pub/samba/samba-${TERMUX_PKG_VERSION}.tar.gz
-TERMUX_PKG_SHA256=75be0e8d31f45013e9b260fe7cf304a36d2d8128391914772577215ec173a807
-TERMUX_PKG_DEPENDS="krb5, libandroid-execinfo, libbsd, libcap, libcrypt, libgnutls, libicu, libpopt, libtalloc, libtasn1, libtirpc, ncurses, openssl, readline, tdb-tools, zlib"
+TERMUX_PKG_SHA256=810cc955acb367e9bde556dccfb50db177a02b7c553aa1629a0b905fa7616267
+TERMUX_PKG_DEPENDS="krb5, libandroid-execinfo, libandroid-spawn, libbsd, libcap, libcrypt, libgnutls, libiconv, libicu, libpopt, libtalloc, libtasn1, libtirpc, ncurses, openssl, readline, tdb-tools, zlib"
 TERMUX_PKG_BUILD_DEPENDS="e2fsprogs"
 TERMUX_PKG_BUILD_IN_SRC=true
-TERMUX_PKG_MAKE_PROCESSES=1
 
 # These files are already present in the package tdb-tools
 TERMUX_PKG_RM_AFTER_INSTALL="
@@ -21,11 +19,12 @@ share/man/man8/tdbbackup.8.gz
 share/man/man8/tdbdump.8.gz
 share/man/man8/tdbrestore.8.gz
 share/man/man8/tdbtool.8.gz
+share/man/man3/talloc.3.gz
 "
 
 termux_step_pre_configure() {
 	CPPFLAGS+=" -D_FILE_OFFSET_BITS=64"
-
+	LDFLAGS+=" -landroid-spawn"
 	export PYTHONHASHSEED=1
 }
 
@@ -89,7 +88,6 @@ getcwd takes a NULL argument: OK
 Checking for readlink breakage: NO
 Checking for gnutls fips mode support: NO
 Checking whether the WRFILE -keytab is supported: OK
-Checking whether fcntl supports setting/getting hints: YES
 EOF
 
 	USING_SYSTEM_ASN1_COMPILE=1 ASN1_COMPILE=/usr/bin/asn1_compile \
@@ -133,7 +131,7 @@ EOF
 		--without-pam \
 		--without-quotas \
 		--without-regedit \
-		--with-system-mitkrb5 "$TERMUX_PREFIX" \
+		--with-system-mitkrb5 \
 		--without-systemd \
 		--without-utmp \
 		--without-winbind \
