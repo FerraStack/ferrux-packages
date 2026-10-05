@@ -47,9 +47,11 @@ termux_step_pre_configure() {
 
 	export F77="$FC"
 	mkdir -p $TERMUX_PKG_TMPDIR/_deps
-	ln -sf $flang_libs_dir/libFortranRuntime.a $TERMUX_PKG_TMPDIR/_deps/
-	ln -sf $flang_libs_dir/libFortranDecimal.a $TERMUX_PKG_TMPDIR/_deps/
-	export ac_cv_f77_libs="-L$TERMUX_PKG_TMPDIR/_deps -l:libFortranRuntime.a -l:libFortranDecimal.a"
+	# Flang in NDK r30 combines the runtime and decimal libraries.
+	ln -sf $flang_libs_dir/libflang_rt.runtime.a $TERMUX_PKG_TMPDIR/_deps/
+	export ac_cv_f77_libs="-L$TERMUX_PKG_TMPDIR/_deps -l:libflang_rt.runtime.a"
+	# Keep the static runtime's symbols local when linking shared libraries.
+	LDFLAGS+=" -Wl,--exclude-libs,libflang_rt.runtime.a"
 
 	LDFLAGS+=" -Wl,-rpath,$TERMUX_PREFIX/lib/octave/$TERMUX_PKG_VERSION"
 	local _libgcc_file="$($CC -print-libgcc-file-name)"

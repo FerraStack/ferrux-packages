@@ -2,20 +2,11 @@ TERMUX_PKG_HOMEPAGE="https://gitlab.freedesktop.org/wayland/weston"
 TERMUX_PKG_DESCRIPTION="A lightweight and functional Wayland compositor"
 TERMUX_PKG_LICENSE="MIT"
 TERMUX_PKG_MAINTAINER="@termux"
-<<<<<<< HEAD
-TERMUX_PKG_VERSION="14.0.2"
-TERMUX_PKG_REVISION=1
-TERMUX_PKG_SRCURL=https://gitlab.freedesktop.org/wayland/weston/-/archive/${TERMUX_PKG_VERSION}/weston-${TERMUX_PKG_VERSION}.tar.gz
-TERMUX_PKG_SHA256=633f4e0f232ad150300c95ffcbc646fedf1349487bf389dbd2045fa69013d6e2
-TERMUX_PKG_DEPENDS="freerdp, libaml, libandroid-shmem, libcairo, libcairo, libevdev, libglvnd, libneatvnc, libseat, libwayland, libwebp, libxcb, libxcursor, libxkbcommon, littlecms, pango, xcb-util-cursor"
-TERMUX_PKG_BUILD_DEPENDS="libwayland-cross-scanner, libwayland-protocols, libglvnd-dev"
-=======
 TERMUX_PKG_VERSION="16.0.0"
 TERMUX_PKG_SRCURL="https://gitlab.freedesktop.org/wayland/weston/-/archive/${TERMUX_PKG_VERSION}/weston-${TERMUX_PKG_VERSION}.tar.gz"
 TERMUX_PKG_SHA256="6a81af51045ccb2813f3a1d63ff8a66c121743c1a5ff3ce78388660bf650c55c"
 TERMUX_PKG_DEPENDS="freerdp, libaml, libandroid-shmem, libcairo, libdisplay-info, libevdev, libglvnd, libneatvnc, libseat, libwayland, libwebp, libxcb, libxcursor, libxkbcommon, littlecms, pango, xcb-util-cursor"
 TERMUX_PKG_BUILD_DEPENDS="libwayland-cross-scanner, libwayland-protocols, lua55, pipewire"
->>>>>>> upstream/master
 # XXX: Do not depend on gbm
 TERMUX_PKG_ANTI_BUILD_DEPENDS="mesa"
 TERMUX_PKG_AUTO_UPDATE=true

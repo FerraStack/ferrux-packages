@@ -1,39 +1,50 @@
-diff -u -r ../cache/command-not-found-3.4.1/generate-db.js ./generate-db.js
---- ../cache/command-not-found-3.4.1/generate-db.js	2026-03-08 12:07:11.000000000 +0000
-+++ ./generate-db.js	2026-03-09 02:21:59.782807639 +0000
-@@ -1,10 +1,11 @@
+--- ./generate-db.js	2026-09-30 18:43:10.369860179 +0200
++++ ./generate-db.js	2026-09-30 18:43:10.385860121 +0200
+@@ -1,10 +1,12 @@
  #!/usr/bin/env node
  import { glob, readFile, writeFile } from "node:fs/promises";
--import { gunzip } from "node:zlib";
-+import { exec } from 'node:child_process';
-+import { readFileSync } from 'node:fs';
+ import { gunzip } from "node:zlib";
++import { exec } from "node:child_process";
  import { join } from "node:path";
  import { promisify } from "node:util";
  
--const gunzipAsync = promisify(gunzip);
+ const gunzipAsync = promisify(gunzip);
 +const execAsync = promisify(exec);
  
  const { TERMUX_SCRIPTDIR, TERMUX_PREFIX, TERMUX_ARCH } = process.env;
  
-@@ -148,18 +149,16 @@
+@@ -148,19 +150,23 @@
+ }
  
  async function processRepo(repo, repoPath, arch) {
-   // Fetch the Contents.gz file for the given architecture from the apt mirror
--  const url = `${repo.url}/dists/${repo.distribution}/Contents-${arch}.gz`;
+-  var url;
+-  if (pkg_format === "debian")
+-    // Fetch the Contents.gz file for the given architecture from the apt mirror
+-    url = `${repo.url}/dists/${repo.distribution}/Contents-${arch}.gz`;
+-  else if (pkg_format === "pacman")
++  var lines;
++  if (pkg_format === "debian") {
++    // Fetch the Contents.xz file for the given architecture from the apt mirror
++    const command = `curl --silent --fail ${repo.url}/dists/${repo.distribution}/Contents-${arch}.xz | xzcat -`;
++    const { stdout } = await execAsync(command, { maxBuffer: 100 * 1024 * 1024 });
++    // Split by new lines
++    lines = stdout.split("\n");
++  } else if (pkg_format === "pacman") {
+     // Fetch the ${repo}.files file for the given architecture from the pacman mirror
+-    url = `${repo.url}/${arch}/${repo.distribution}.files`;
 -  const response = await fetchURL(url);
-+  const command = `curl --silent ${repo.url}/dists/${repo.distribution}/Contents-${arch}.xz | xzcat -`;
++    const url = `${repo.url}/${arch}/${repo.distribution}.files`;
++    const response = await fetchURL(url);
  
 -  // Since we are using a gzip file, we need to decompress it
 -  const data = await gunzipAsync(await response);
-+  const { error, stdout, stderr } = await execAsync(command, {maxBuffer: 100 * 1024 * 1024});
-   // Convert to string and split by new lines
-   // Each line is of the format:
-   // "path/to/file package"
-   //
-   // Where `path/to/file` is the path to the file in the package, and `package`
-   // is the name of the package that provides this file.
+-  // Convert to string and split by new lines
 -  const lines = data.toString().split("\n");
-+  const lines = stdout.split("\n");
++    // Since we are using a gzip file, we need to decompress it
++    const data = await gunzipAsync(await response);
++    // Convert to string and split by new lines
++    lines = data.toString().split("\n");
++  }
  
-   // Stores mappings of binary names to package names
-   // The key is the binary name, and the value is an array of package names
+   // Stores mappings of file paths to package names
+   // This is needed to resolve the package names for binaries that are setup

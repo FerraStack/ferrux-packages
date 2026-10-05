@@ -20,6 +20,14 @@ termux_step_get_dependencies() {
 		# llvm doesn't build if ndk-sysroot is installed:
 		if [ "$PKG" = "ndk-sysroot" ]; then continue; fi
 
+		# Detect circular dependencies (e.g. libmp3lame -> libmpg123 -> pulseaudio
+		# -> libsndfile -> libmp3lame) to avoid building the same package forever.
+		local cyclic_dependency=false
+		if [[ " ${TERMUX_PKGS__BUILD__BUILDING_PACKAGES:-} " == *" $(basename "$PKG_DIR") "* ]]; then
+			echo "Circular dependency on $PKG detected, it will not be built as a dependency"
+			cyclic_dependency=true
+		fi
+
 		read DEP_ARCH DEP_VERSION UNUSED UNUSED <<< $(termux_extract_dep_info $PKG "${PKG_DIR}")
 
 		local can_build_locally=true
@@ -31,7 +39,19 @@ termux_step_get_dependencies() {
 		local DEB_FILE_TO_INSTALL
 
 		local build_dependency=false
-		if [ "$can_build_locally" = "true" ] && [ "$TERMUX_INSTALL_DEPS" = "false" ]; then
+		if $cyclic_dependency; then
+			# A package further up the build chain cannot be built again here,
+			# so install whatever version of it the repository has, if any.
+			if [ "$TERMUX_INSTALL_DEPS" = "false" ]; then
+				termux_setup_repo_keyring
+				TERMUX_INSTALL_DEPS=true termux_download_repo_file
+			fi
+			DEB_FILE_TO_INSTALL="${TERMUX_COMMON_CACHEDIR}-${DEP_ARCH}/${PKG}_${DEP_ARCH}.deb"
+			if ! termux_download_deb_pac $PKG $DEP_ARCH '*' "$DEB_FILE_TO_INSTALL"; then
+				echo "Download of $PKG from $TERMUX_REPO_URL failed, skipping circular dependency"
+				continue
+			fi
+		elif [ "$can_build_locally" = "true" ] && [ "$TERMUX_INSTALL_DEPS" = "false" ]; then
 			build_dependency=true
 		else
 			DEB_FILE_TO_INSTALL="${TERMUX_COMMON_CACHEDIR}-${DEP_ARCH}/${PKG}_${DEP_VERSION}_${DEP_ARCH}.deb"

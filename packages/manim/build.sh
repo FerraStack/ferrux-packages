@@ -8,11 +8,16 @@ TERMUX_PKG_SRCURL="https://github.com/ManimCommunity/manim/archive/refs/tags/v$T
 TERMUX_PKG_SHA256=d4657f29981c745a124090a70e302ed28208f809aee467a9735eed8f92bd0e28
 TERMUX_PKG_DEPENDS="cmake, ffmpeg, libcairo, pango, xorgproto, python-manimpango, python-numpy, python-pillow, python-pip, pycairo, python-scipy, python-skia-pathops"
 TERMUX_PKG_SUGGESTS="texlive-installer"
-TERMUX_PKG_PYTHON_COMMON_BUILD_DEPS="poetry"
+TERMUX_PKG_PYTHON_COMMON_BUILD_DEPS="'uv_build>=0.12.1,<0.13.0'"
 TERMUX_PKG_BUILD_IN_SRC=true
 TERMUX_PKG_AUTO_UPDATE=true
 TERMUX_PKG_EXCLUDED_ARCHES="arm, i686"
 
 termux_step_make() {
-	termux_setup_rust
+	:
+}
+
+termux_step_make_install() {
+	# Use the build-host backend instead of building uv_build for cross-python.
+	pip install --no-build-isolation --no-deps . --prefix "$TERMUX_PREFIX"
 }

@@ -72,8 +72,24 @@ termux_step_make() {
 			"dist/nimble/src/nimble") nim_flags="-d:nimNimbleBootstrap";; # See: https://github.com/nim-lang/nimble/issues/1248
 			*) nim_flags="";;
 		esac
-		nim --cc:clang --clang.exe=$CC --clang.linkerexe=$CC $nim_flags --define:termux -d:release -d:sslVersion=3 --os:android --cpu:$NIM_ARCH  -t:"$CPPFLAGS $CFLAGS" -l:"$LDFLAGS" -d:tempDir:$TERMUX_PREFIX/tmp c $(basename $cmd).nim
-		popd
+		(
+			cd "$(dirname "$cmd")" && \
+			nim \
+				--cc:clang \
+				--clang.exe="$CC" \
+				--clang.linkerexe="$CC" \
+				--cpu:"$NIM_ARCH" \
+				--define:termux \
+				--os:android \
+				-d:"tempDir:$TERMUX_PREFIX/tmp" \
+				-d:release \
+				-d:sslVersion=3 \
+				-l:"$LDFLAGS" \
+				-t:"$CPPFLAGS $CFLAGS" \
+				$nim_flags \
+				c \
+				"$(basename "$cmd").nim"
+		)
 	done
 
 	sed -i \

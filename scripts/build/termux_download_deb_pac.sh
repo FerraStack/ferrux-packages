@@ -11,7 +11,7 @@ termux_download_deb_pac() {
 	PKG_HASH=""
 
 	if [ "$TERMUX_ON_DEVICE_BUILD" = "true" ]; then
-		apt install -y "${PACKAGE}=${VERSION}"
+		apt install -y "${PACKAGE}$([ "$VERSION" != "*" ] && echo "=${VERSION}")"
 		return "$?"
 	fi
 
@@ -23,7 +23,7 @@ termux_download_deb_pac() {
 			# all arch is mixed into the other arches,
 			# check for package in aarch64 Packages
 			# instead.
-			read -d "\n" PKG_PATH PKG_HASH <<<$(./scripts/get_hash_from_file.py "${TERMUX_COMMON_CACHEDIR}-${TERMUX_ARCH}/$PACKAGE_FILE_PATH" $PACKAGE $VERSION)
+			read -d "\n" PKG_PATH PKG_HASH <<<$(./scripts/get_hash_from_file.py "${TERMUX_COMMON_CACHEDIR}-${TERMUX_ARCH}/$PACKAGE_FILE_PATH" "$PACKAGE" "$VERSION")
 			if [ -n "$PKG_HASH" ] && [ "$PKG_HASH" != "null" ]; then
 				if [ ! "$TERMUX_QUIET_BUILD" = true ]; then
 					echo "Found $PACKAGE@$VERSION in ${TERMUX_REPO_URL[$idx-1]}/dists/${TERMUX_REPO_DISTRIBUTION[$idx-1]}"
@@ -33,6 +33,16 @@ termux_download_deb_pac() {
 	done
 
 	if [ "$PKG_HASH" = "" ] || [ "$PKG_HASH" = "null" ]; then
+		local cache_file="${TERMUX_COMMON_CACHEDIR}-${PACKAGE_ARCH}/${PKG_FILE}"
+		local output_file="${TERMUX_OUTPUT_DIR}/${PKG_FILE}"
+		if [[ "${TERMUX_PKGS__BUILD__REUSE_BUILT_PACKAGES:-}" == "true" ]]; then
+			if [[ -f "${output_file}" ]]; then
+				ln -sf "${output_file}" "${cache_file}"
+				echo "Found ${PACKAGE} in ${TERMUX_OUTPUT_DIR}"
+				return 0
+			fi
+		fi
+		[[ ! -L "${cache_file}" ]] || rm -f "${cache_file}"
 		return 1
 	fi
 

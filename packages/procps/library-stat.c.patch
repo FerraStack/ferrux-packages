@@ -1,12 +1,13 @@
 --- a/library/stat.c
 +++ b/library/stat.c
-@@ -768,7 +768,8 @@ static int stat_read_failed (
+@@ -768,7 +768,9 @@ static int stat_read_failed (
      }
  
      if (!info->stat_fp
 -    && (!(info->stat_fp = fopen(STAT_FILE, "r"))))
++    /* Android does not permit access to /proc/stat without root, fall back to a mock file. */
 +    && (!(info->stat_fp = fopen(STAT_FILE, "r")) &&
-+        !(info->stat_fp = fopen(MOCK_STAT_FILE, "r"))))
++        !(info->stat_fp = fopen("@TERMUX_PREFIX@/var/procps/stat", "r"))))
          return 1;
      else {
          fflush(info->stat_fp);

@@ -57,10 +57,11 @@ termux_step_pre_configure() {
 		cp "$TERMUX_STANDALONE_TOOLCHAIN/sysroot/usr/lib/$TERMUX_HOST_PLATFORM/26/libaaudio.so" \
 			"${_libdir}"
 		LDFLAGS+=" -L${_libdir}"
-		sed -i "s/aaudio_opt = get_option('aaudio').require(features\['android'\])/aaudio_opt = get_option('aaudio')/" "${TERMUX_PKG_SRCDIR}/meson.build"
 	fi
 	LDFLAGS+=" -landroid-glob"
 	sed -i "s/host_machine.system() == 'android'/false/" "${TERMUX_PKG_SRCDIR}/meson.build"
+	# Keep AAudio enabled even though the Android feature flag is disabled above.
+	sed -i "s/aaudio_opt = get_option('aaudio').require(features\['android'\])/aaudio_opt = get_option('aaudio')/" "${TERMUX_PKG_SRCDIR}/meson.build"
 }
 
 termux_step_post_make_install() {

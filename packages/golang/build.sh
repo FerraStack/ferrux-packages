@@ -11,6 +11,13 @@ TERMUX_PKG_RECOMMENDS="resolv-conf"
 TERMUX_PKG_BUILD_IN_SRC=true
 TERMUX_PKG_NO_STATICSPLIT=true
 
+termux_step_post_get_source() {
+	. "$TERMUX_PKG_BUILDER_DIR/patch-script/fix-hardcoded-etc-resolv-conf.sh"
+	. "$TERMUX_PKG_BUILDER_DIR/patch-script/remove-pidfd.sh"
+	. "$TERMUX_PKG_BUILDER_DIR/patch-script/remove-futex_time64.sh"
+	. "$TERMUX_PKG_BUILDER_DIR/patch-script/fix-android-netlink.sh"
+}
+
 termux_step_make_install() {
 	termux_setup_golang
 

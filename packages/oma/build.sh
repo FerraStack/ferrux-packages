@@ -43,8 +43,8 @@ termux_step_pre_configure() {
 			xargs -n 1 sed -i -e "s%${original_name}%${TERMUX_APP__PACKAGE_NAME}%g"
 	fi
 
-	# error: function-like macro '__GLIBC_USE' is not defined
-	export BINDGEN_EXTRA_CLANG_ARGS_${CARGO_TARGET_NAME//-/_}="--sysroot ${TERMUX_STANDALONE_TOOLCHAIN}/sysroot --target=${CARGO_TARGET_NAME}"
+	# Use the Android sysroot and API-versioned target required by NDK r30.
+	export BINDGEN_EXTRA_CLANG_ARGS_${CARGO_TARGET_NAME//-/_}="--sysroot ${TERMUX_STANDALONE_TOOLCHAIN}/sysroot --target=${CCTERMUX_HOST_PLATFORM}"
 	CXXFLAGS+=" $CPPFLAGS"
 }
 

@@ -17,6 +17,9 @@ TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
 termux_step_pre_configure() {
 	termux_setup_wayland_cross_pkg_config_wrapper
 
+	# NDK r30 deprecates strtok; foot enables -Werror by default.
+	CFLAGS+=" -Wno-error=deprecated-declarations"
+
 	# bionic provides this
 	export CPPFLAGS+=" -D__STDC_ISO_10646__=201103L"
 }

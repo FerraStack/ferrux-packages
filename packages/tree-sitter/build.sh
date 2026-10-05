@@ -71,7 +71,7 @@ termux_step_pre_configure() {
 
 	# error: function-like macro '__GLIBC_USE' is not defined
 	# solution borrowed from packages/oma/build.sh
-	export BINDGEN_EXTRA_CLANG_ARGS_"${CARGO_TARGET_NAME//-/_}"="--sysroot ${TERMUX_STANDALONE_TOOLCHAIN}/sysroot --target=${CARGO_TARGET_NAME}"
+	export BINDGEN_EXTRA_CLANG_ARGS_"${CARGO_TARGET_NAME//-/_}"="--sysroot ${TERMUX_STANDALONE_TOOLCHAIN}/sysroot --target=${CCTERMUX_HOST_PLATFORM}"
 }
 
 termux_step_post_make_install() {

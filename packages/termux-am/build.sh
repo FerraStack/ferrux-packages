@@ -3,10 +3,9 @@ TERMUX_PKG_HOMEPAGE=https://github.com/termux/TermuxAm
 TERMUX_PKG_DESCRIPTION="Android Oreo-compatible am command reimplementation"
 TERMUX_PKG_LICENSE="Apache-2.0"
 TERMUX_PKG_MAINTAINER="Michal Bednarski @michalbednarski"
-TERMUX_PKG_VERSION=0.8.0
-TERMUX_PKG_REVISION=2
+TERMUX_PKG_VERSION="0.8.1"
 TERMUX_PKG_SRCURL=https://github.com/termux/TermuxAm/archive/refs/tags/v$TERMUX_PKG_VERSION.tar.gz
-TERMUX_PKG_SHA256=7d4cfa2bfff93d5fc89fc89e537d2c072e08918276b140b7ed48ea45ebfbe8f3
+TERMUX_PKG_SHA256=bdfd0c9f1c544a779be0a73393580f75303818775f3396c6b93adc7d5ba6116e
 TERMUX_PKG_PLATFORM_INDEPENDENT=true
 TERMUX_PKG_BUILD_IN_SRC=true
 TERMUX_PKG_CONFLICTS="termux-tools (<< 0.51)"
@@ -26,13 +25,14 @@ termux_step_make() {
 	mkdir $TERMUX_PKG_TMPDIR/gradle
 	unzip -q $TERMUX_PKG_CACHEDIR/gradle-$_GRADLE_VERSION-bin.zip -d $TERMUX_PKG_TMPDIR/gradle
 
-	export ANDROID_HOME
-	export GRADLE_OPTS="-Dorg.gradle.daemon=false -Xmx1536m -Dorg.gradle.java.home=$TERMUX_JAVA_HOME"
+	# Avoid spawning the gradle daemon due to org.gradle.jvmargs
+	# being set (https://github.com/gradle/gradle/issues/1434):
+	sed -i'' -E '/^org\.gradle\.jvmargs=.*/d' gradle.properties
 
-	# Why 'echo -n |'? See https://github.com/gradle/gradle/issues/14961 -
-	# the build can hang otherwise.
-	echo -n | $TERMUX_PKG_TMPDIR/gradle/gradle-$_GRADLE_VERSION/bin/gradle \
-		--no-daemon \
+	export ANDROID_HOME
+	export GRADLE_OPTS="-Dorg.gradle.daemon=false -Xmx1536m"
+
+	$TERMUX_PKG_TMPDIR/gradle/gradle-$_GRADLE_VERSION/bin/gradle \
 		:app:assembleRelease
 }
 

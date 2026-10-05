@@ -7,10 +7,6 @@ termux_setup_golang() {
 		local TERMUX_GO_SHA256=63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445
 		local TERMUX_GO_PLATFORM=linux-amd64
 
-		# Need to be on latest go version to avoid risk of newer go version in go.mod
-		# leading to a prebuilt toolchain (which lacks the Termux patches):
-		# (curl 'https://go.dev/VERSION?m=text' | grep -q $TERMUX_GO_VERSION) || termux_error_exit "Not on latest go version. Using $TERMUX_GO_VERSION"
-
 		local TERMUX_BUILDGO_FOLDER
 		if [ "${TERMUX_PACKAGES_OFFLINE-false}" = "true" ]; then
 			TERMUX_BUILDGO_FOLDER=${TERMUX_SCRIPTDIR}/build-tools/${TERMUX_GO_VERSION}
@@ -18,7 +14,7 @@ termux_setup_golang() {
 			TERMUX_BUILDGO_FOLDER=${TERMUX_COMMON_CACHEDIR}/${TERMUX_GO_VERSION}
 		fi
 
-		TERMUX_BUILDGO_FOLDER+="-r1"
+		TERMUX_BUILDGO_FOLDER+="-r1-linker-exec"
 
 		export GOROOT=$TERMUX_BUILDGO_FOLDER
 		export PATH=${GOROOT}/bin:${PATH}
@@ -31,30 +27,38 @@ termux_setup_golang() {
 			"$TERMUX_BUILDGO_TAR" \
 			"$TERMUX_GO_SHA256"
 
-		local old_pwd=$PWD
-		cd "$TERMUX_COMMON_CACHEDIR"
-		tar xf "$TERMUX_BUILDGO_TAR"
-		cd go
-		local patch_file
-		for patch_file in $TERMUX_SCRIPTDIR/packages/golang/*.patch; do
-		sed \
-			-e "s%\@TERMUX_BASE_DIR\@%${TERMUX_BASE_DIR}%g" \
-			-e "s%\@TERMUX_CACHE_DIR\@%${TERMUX_CACHE_DIR}%g" \
-			-e "s%\@TERMUX_HOME\@%${TERMUX_ANDROID_HOME}%g" \
-			-e "s%\@TERMUX_PREFIX\@%${TERMUX_PREFIX}%g" \
-			-e "s%\@TERMUX_PREFIX_CLASSICAL\@%${TERMUX_PREFIX_CLASSICAL}%g" \
-			"$patch_file" | patch -p1
-		done
-		cd ..
-		mv go "$TERMUX_BUILDGO_FOLDER"
-		rm "$TERMUX_BUILDGO_TAR"
-		cd "$old_pwd"
+		(
+			cd "$TERMUX_COMMON_CACHEDIR"
+			tar xf "$TERMUX_BUILDGO_TAR"
+			mv go "$TERMUX_BUILDGO_FOLDER"
+			rm "$TERMUX_BUILDGO_TAR"
+		)
+
+		(
+			cd "$TERMUX_BUILDGO_FOLDER"
+			. "${TERMUX_SCRIPTDIR}/packages/golang/patch-script/fix-hardcoded-etc-resolv-conf.sh"
+			. "${TERMUX_SCRIPTDIR}/packages/golang/patch-script/remove-pidfd.sh"
+			. "${TERMUX_SCRIPTDIR}/packages/golang/patch-script/remove-futex_time64.sh"
+			. "${TERMUX_SCRIPTDIR}/packages/golang/patch-script/fix-android-netlink.sh"
+			# Exec workaround (executing through /system/bin/linker{,64}), which
+			# needs to be in the host toolchain to affect cross-compiled programs:
+			local patch_file
+			for patch_file in src-cgocfg.patch src-os-exec_posix.go.patch \
+				src-os-executable_procfs.go.patch src-runtime-runtime1.go.patch; do
+				sed -e "s|@TERMUX_PREFIX@|$TERMUX_PREFIX|" \
+					"${TERMUX_SCRIPTDIR}/packages/golang/${patch_file}" \
+					| patch --silent -p1
+			done
+		)
 	else
-		if [[ "$(dpkg-query -W -f '${db:Status-Status}\n' golang 2>/dev/null)" != "installed" ]]; then
+		if [[ "$TERMUX_APP_PACKAGE_MANAGER" = "apt" && "$(dpkg-query -W -f '${db:Status-Status}\n' golang 2>/dev/null)" != "installed" ]] ||
+		[[ "$TERMUX_APP_PACKAGE_MANAGER" = "pacman" && ! "$(pacman -Q golang 2>/dev/null)" ]]; then
 			echo "Package 'golang' is not installed."
 			echo "You can install it with"
 			echo
 			echo "  pkg install golang"
+			echo
+			echo "  pacman -S golang"
 			echo
 			echo "or build it from source with"
 			echo

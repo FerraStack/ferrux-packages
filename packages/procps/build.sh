@@ -54,9 +54,6 @@ termux_step_pre_configure() {
 	# older than Android 9 don't have glob normally
 	LDFLAGS+=" -landroid-glob"
 
-	# Android does not have permission to acccess /proc/stat without root
-	CPPFLAGS+=" -DMOCK_STAT_FILE=\\\"$TERMUX_PREFIX/var/procps/stat\\\""
-
 	autoreconf -fi
 }
 

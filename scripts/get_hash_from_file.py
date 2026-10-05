@@ -14,7 +14,7 @@ def get_pkg_hash_from_Packages(Packages_file, package, version, hash_type="SHA25
                 if line.startswith('Filename:'):
                     filename = line.split(" ")[1]
                 elif line.startswith('Version:'):
-                    if line == 'Version: '+version:
+                    if version == '*' or line == 'Version: '+version:
                         print(filename + " " + pkghash)
                         return
                 elif line.startswith(hash_type):
