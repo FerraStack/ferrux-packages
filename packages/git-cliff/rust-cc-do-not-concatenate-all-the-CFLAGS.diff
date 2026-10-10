@@ -16,6 +16,14 @@ This patch will restore the old behaviour. For Termux we know how it is going.
 
 --- a/src/lib.rs
 +++ b/src/lib.rs
+@@ -237,5 +237,7 @@
+ #![doc(html_root_url = "https://docs.rs/cc/1.0")]
+ #![deny(warnings)]
++// Keep this vendored version compatible with newer Rust deprecations.
++#![allow(deprecated)]
+ #![deny(missing_docs)]
+ #![deny(clippy::disallowed_methods)]
+ #![warn(clippy::doc_markdown)]
 @@ -3901,14 +3901,13 @@ impl Build {
  
      /// Get values from CFLAGS-style environment variable.
