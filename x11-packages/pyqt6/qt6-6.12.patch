@@ -1,0 +1,14 @@
+Qt 6.12 removed the keypad navigation events, even when
+QT_KEYPAD_NAVIGATION is defined. Do not generate bindings for them.
+
+--- a/sip/QtCore/qcoreevent.sip
++++ b/sip/QtCore/qcoreevent.sip
+@@ -200,8 +200,6 @@
+         PlatformSurface,
+         TabletTrackingChange,
+         GraphicsSceneLeave,
+-        EnterEditFocus,
+-        LeaveEditFocus,
+ %If (Qt_6_6_0 -)
+         DevicePixelRatioChange,
+ %End

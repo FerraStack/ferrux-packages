@@ -3,6 +3,7 @@ TERMUX_PKG_DESCRIPTION="Comprehensive Python Bindings for Qt v6"
 TERMUX_PKG_LICENSE="GPL-3.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="6.11.0"
+TERMUX_PKG_REVISION=1
 TERMUX_PKG_SRCURL=https://files.pythonhosted.org/packages/source/p/pyqt6/pyqt6-${TERMUX_PKG_VERSION}.tar.gz
 TERMUX_PKG_SHA256=45dd60aa69976de1918b5ced6b4e7b6a25abd2a919ecef5fd5826ecc76718889
 TERMUX_PKG_DEPENDS="libc++, libglvnd-dev, python, qt6-qtbase, qt6-qtdeclarative, qt6-qtsvg, qt6-qttools, qt6-qtwebchannel, qt6-qtwebsockets, python-pip"
