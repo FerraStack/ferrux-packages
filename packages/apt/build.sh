@@ -2,9 +2,9 @@ TERMUX_PKG_HOMEPAGE=https://packages.debian.org/apt
 TERMUX_PKG_DESCRIPTION="Front-end for the dpkg package manager"
 TERMUX_PKG_LICENSE="GPL-2.0"
 TERMUX_PKG_MAINTAINER="@termux"
-TERMUX_PKG_VERSION="3.1.15"
+TERMUX_PKG_VERSION="3.3.3"
 TERMUX_PKG_SRCURL=https://deb.debian.org/debian/pool/main/a/apt/apt_${TERMUX_PKG_VERSION}.tar.xz
-TERMUX_PKG_SHA256=208d58ff5bf6d9ebb93da0d77d480ef87b4618b0210dc88cb977aadd88d1c1c6
+TERMUX_PKG_SHA256=1c06b4a145d6117917c390c79fe7d27d9d92ee922101134ad6446717b0a1c28f
 # apt-key requires utilities from coreutils, findutils, gpgv, grep, sed.
 TERMUX_PKG_DEPENDS="coreutils, dpkg, findutils, gpgv, grep, libc++, openssl, liblzma, sed, termux-keyring, termux-licenses, xxhash"
 TERMUX_PKG_BUILD_DEPENDS="docbook-xsl"
@@ -46,7 +46,7 @@ TERMUX_PKG_RM_AFTER_INSTALL="
 bin/apt-cdrom
 bin/apt-extracttemplates
 bin/apt-sortpkgs
-etc/apt/apt.conf.d
+etc/apt/apt.conf.d/01-vendor-ubuntu
 lib/apt/methods/cdrom
 lib/apt/methods/mirror*
 lib/apt/methods/rred
@@ -93,6 +93,10 @@ termux_step_post_make_install() {
 	local dir=$TERMUX_PREFIX/share/apt-transport-tor
 	mkdir -p $dir
 	touch $dir/.placeholder
+
+	# Keep apt.conf.d owned by apt so removing apt-file does not remove it.
+	mkdir -p "$TERMUX_PREFIX/etc/apt/apt.conf.d"
+	touch "$TERMUX_PREFIX/etc/apt/apt.conf.d/.placeholder"
 }
 
 termux_step_create_debscripts() {
