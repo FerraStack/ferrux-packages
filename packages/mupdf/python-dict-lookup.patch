@@ -1,0 +1,14 @@
+SWIG 4.5 no longer provides the PyString_FromString compatibility macro.
+Use the string-key lookup API directly, also avoiding a leaked key reference.
+
+--- a/scripts/wrap/swig.py
++++ b/scripts/wrap/swig.py
+@@ -740,7 +740,7 @@
+                 {
+                     message += "Traceback (from traceback.format_tb()):\\n";
+                     PyObject* traceback_dict = PyModule_GetDict(traceback);
+-                    PyObject* format_tb = PyDict_GetItem(traceback_dict, PyString_FromString("format_tb"));
++                    PyObject* format_tb = PyDict_GetItemString(traceback_dict, "format_tb");
+                     PyObject* ret = PyObject_CallFunctionObjArgs(format_tb, trace, NULL);
+                     PyObject* iter = PyObject_GetIter(ret);
+                     for(;;)
