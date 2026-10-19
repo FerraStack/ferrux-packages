@@ -1,0 +1,10 @@
+--- a/persistent-data/hex_dump.h
++++ b/persistent-data/hex_dump.h
+@@ -19,6 +19,7 @@
+ #ifndef HEX_DUMP_H
+ #define HEX_DUMP_H
+ 
++#include <stddef.h>
+ #include <iosfwd>
+ 
+ //----------------------------------------------------------------

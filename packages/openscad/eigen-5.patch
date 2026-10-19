@@ -1,0 +1,24 @@
+Use the imported target: Eigen 5 no longer exports EIGEN3_INCLUDE_DIR.
+Include cassert explicitly instead of relying on Eigen's headers.
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -197,7 +197,7 @@
+   else()
+     message(STATUS "Eigen3: ${EIGEN3_VERSION_STRING}")
+   endif()
+-  include_directories(${EIGEN3_INCLUDE_DIR})
++  list(APPEND COMMON_LIBRARIES Eigen3::Eigen)
+   add_definitions(-DEIGEN_DONT_ALIGN)
+ 
+   find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_DIRECTLY_REQUIRED_LIBRARIES})
+
+--- a/src/Geometry.h
++++ b/src/Geometry.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ 
++#include <cassert>
+ #include <stddef.h>
+ #include <string>
+ #include <list>
