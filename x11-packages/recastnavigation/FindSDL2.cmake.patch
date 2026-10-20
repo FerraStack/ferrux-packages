@@ -1,0 +1,13 @@
+Termux's SDL2 uses a normal main() and does not provide libSDL2main.
+
+--- a/RecastDemo/cmake/FindSDL2.cmake
++++ b/RecastDemo/cmake/FindSDL2.cmake
+@@ -126,7 +126,7 @@
+ endif()
+ 
+ 
+-if(WIN32 OR ANDROID OR IOS OR (APPLE AND NOT _sdl2_framework))
++if(WIN32 OR IOS OR (APPLE AND NOT _sdl2_framework))
+ 	set(SDL2_EXTRA_REQUIRED SDL2_SDLMAIN_LIBRARY)
+ 	find_library(SDL2_SDLMAIN_LIBRARY
+ 		NAMES
