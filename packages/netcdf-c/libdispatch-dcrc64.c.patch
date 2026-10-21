@@ -1,0 +1,15 @@
+Android's headers can define PTHREAD_ONCE_INIT without declaring pthread_once.
+Include pthread.h explicitly for the thread-safe CRC64 table initialization.
+
+--- a/libdispatch/dcrc64.c
++++ b/libdispatch/dcrc64.c
+@@ -48,9 +48,7 @@
+    pthread library for table initialization.  In that case, the initialization
+    will not be thread-safe.  That's fine, so long as it can be assured that
+    there is only one thread using crc64(). */
+-#if 0
+ #include <pthread.h>            /* link with -lpthread */
+-#endif
+ 
+ /* 64-bit CRC polynomial with these coefficients, but reversed:
+     64, 62, 57, 55, 54, 53, 52, 47, 46, 45, 40, 39, 38, 37, 35, 33, 32,
