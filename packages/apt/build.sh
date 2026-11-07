@@ -15,7 +15,7 @@ TERMUX_PKG_SUGGESTS="gnupg"
 TERMUX_PKG_ESSENTIAL=true
 
 TERMUX_PKG_CONFFILES="
-etc/apt/sources.list.d/termux.sources
+etc/apt/sources.list.d/ferrux.sources
 "
 
 TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
@@ -76,14 +76,15 @@ termux_step_pre_configure() {
 
 termux_step_post_make_install() {
 	mkdir -p "$TERMUX_PREFIX"/etc/apt/sources.list.d
+	# Ferrux: a flat repository (one per architecture) published as GitHub
+	# Release assets by .github/workflows/ferrux-packages.yml.
 	{
-		echo "# The main termux repository"
-		echo "Components: main"
-		echo "Signed-By: $TERMUX_PREFIX/etc/apt/trusted.gpg.d/termux-packages.gpg"
-		echo "Suites: stable"
+		echo "# The Ferrux package repository"
 		echo "Types: deb"
-		echo "URIs: https://termux.net"
-	} > $TERMUX_PREFIX/etc/apt/sources.list.d/termux.sources
+		echo "URIs: https://github.com/FerraStack/ferrux-packages/releases/download/repo-${TERMUX_ARCH}/"
+		echo "Suites: /"
+		echo "Signed-By: $TERMUX_PREFIX/etc/apt/trusted.gpg.d/ferrux-packages.gpg"
+	} > $TERMUX_PREFIX/etc/apt/sources.list.d/ferrux.sources
 
 	# apt-transport-tor
 	ln -sfr $TERMUX_PREFIX/lib/apt/methods/http $TERMUX_PREFIX/lib/apt/methods/tor

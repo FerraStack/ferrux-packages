@@ -464,7 +464,8 @@ TERMUX__REPOS_HOST_ORG_URL="https://github.com/$TERMUX__REPOS_HOST_ORG_NAME"
 #
 # Default value: `com.termux`
 ##
-TERMUX_APP__PACKAGE_NAME="com.termux"
+# Ferrux: packages are built for the dev.ferrux app (upstream: "com.termux").
+TERMUX_APP__PACKAGE_NAME="dev.ferrux"
 TERMUX_APP_PACKAGE="$TERMUX_APP__PACKAGE_NAME" # Deprecated alternative variable for `TERMUX_APP__PACKAGE_NAME`
 
 __termux_build_props__add_variables_validator_actions "TERMUX_APP__PACKAGE_NAME" "app_package_name"
@@ -2180,13 +2181,13 @@ TERMUX_AM_APP__AM_CLASS__CLASS_NAME="$TERMUX_AM_APP__NAMESPACE.Am"
 # and are compiled locally.
 # FIXME: Checking for all variables will be added later in repo
 # changes pull, currently only `TERMUX_REPO_APP__PACKAGE_NAME` is checked.
-TERMUX_REPO_APP__PACKAGE_NAME="com.termux"
-TERMUX_REPO_APP__DATA_DIR="/data/data/com.termux"
-TERMUX_REPO__CORE_DIR="/data/data/com.termux/termux/core"
-TERMUX_REPO__APPS_DIR="/data/data/com.termux/termux/app"
-TERMUX_REPO__ROOTFS="/data/data/com.termux/files"
-TERMUX_REPO__HOME="/data/data/com.termux/files/home"
-TERMUX_REPO__PREFIX="/data/data/com.termux/files/usr"
+TERMUX_REPO_APP__PACKAGE_NAME="dev.ferrux"
+TERMUX_REPO_APP__DATA_DIR="/data/data/dev.ferrux"
+TERMUX_REPO__CORE_DIR="/data/data/dev.ferrux/termux/core"
+TERMUX_REPO__APPS_DIR="/data/data/dev.ferrux/termux/app"
+TERMUX_REPO__ROOTFS="/data/data/dev.ferrux/files"
+TERMUX_REPO__HOME="/data/data/dev.ferrux/files/home"
+TERMUX_REPO__PREFIX="/data/data/dev.ferrux/files/usr"
 
 
 

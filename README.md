@@ -1,3 +1,8 @@
+> **This fork builds packages for [Ferrux](https://github.com/FerraStack/ferrux)
+> (`dev.ferrux`, prefix `/data/data/dev.ferrux/files/usr`).** See
+> [FERRUX.md](FERRUX.md) for what differs from upstream, the apt repository and
+> the CI. The text below is the upstream README.
+
 # Termux packages for the Google Play build of Termux
 
 This repository contains the packages used in the [Termux build on Google Play](https://play.google.com/store/apps/details?id=com.termux&hl=en).

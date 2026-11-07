@@ -623,9 +623,9 @@ fi
 # Keys are obtained from our keyring package.
 termux_setup_repo_keyring() {
 	local FINGERPRINT
-	FINGERPRINT=$(gpg --with-colons --show-keys $TERMUX_SCRIPTDIR/packages/termux-keyring/termux-packages.gpg | awk -F':' '$1=="fpr"{print $10}')
+	FINGERPRINT=$(gpg --with-colons --show-keys $TERMUX_SCRIPTDIR/packages/termux-keyring/ferrux-packages.gpg | awk -F':' '$1=="fpr"{print $10}')
 	gpg --list-keys $FINGERPRINT > /dev/null 2>&1 || {
-		gpg --import "$TERMUX_SCRIPTDIR/packages/termux-keyring/termux-packages.gpg"
+		gpg --import "$TERMUX_SCRIPTDIR/packages/termux-keyring/ferrux-packages.gpg"
 		gpg --no-tty --command-file <(echo -e "trust\n5\ny")  --edit-key $FINGERPRINT
 	}
 }
