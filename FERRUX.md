@@ -18,6 +18,8 @@ prefix is compiled into every binary.
 | `scripts/properties.sh` | `TERMUX_APP__PACKAGE_NAME` and `TERMUX_REPO_*` set to `dev.ferrux` |
 | `repo.json` | Points at this repository (never at termux.net, so no com.termux package can leak into a build) |
 | `packages/apt/build.sh` | Ships `etc/apt/sources.list.d/ferrux.sources` for our repository |
+| `packages/apt/build.sh` | Source from snapshot.debian.org (deb.debian.org dropped 3.3.3; same SHA-256) |
+| `packages/libgnutls/libgnutls-dane.subpackage.sh` | One-line description (two lines made an invalid control file) |
 | `packages/termux-keyring/` | Contains only the Ferrux signing key (`ferrux-packages.gpg`) |
 | `build-package.sh` | Uses `ferrux-packages.gpg` for `-i` downloads |
 | `scripts/generate-bootstraps.sh` | `--flat-repository URL` (`@ARCH@` placeholder); no `command-not-found` |
