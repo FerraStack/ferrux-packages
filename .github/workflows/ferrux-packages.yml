@@ -71,6 +71,28 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
+      - name: Check the published repository with apt
+        # Same sources entry as the apt package ships; proves the flat
+        # layout, the InRelease signature and the Filename URLs.
+        env:
+          ARCH: ${{ matrix.arch }}
+          URI: https://github.com/${{ github.repository }}/releases/download/repo-${{ matrix.arch }}/
+        run: |
+          d="$RUNNER_TEMP/apt-check"
+          mkdir -p "$d/sources" "$d/lists/partial" "$d/archives/partial" "$d/dl"
+          : > "$d/status"
+          printf 'Types: deb\nURIs: %s\nSuites: /\nSigned-By: %s\n' "$URI" "$PWD/packages/termux-keyring/ferrux-packages.gpg" > "$d/sources/ferrux.sources"
+          apt_opts=(
+            -o Dir::Etc::SourceList=/dev/null -o Dir::Etc::SourceParts="$d/sources"
+            -o Dir::State::Lists="$d/lists" -o Dir::State::status="$d/status"
+            -o Dir::State="$d" -o Dir::Cache="$d" -o Dir::Cache::Archives="$d/archives"
+            -o APT::Architecture="$ARCH" -o APT::Architectures::="$ARCH"
+            -o Debug::NoLocking=1
+          )
+          apt-get "${apt_opts[@]}" update 2>&1 | tee "$d/update.log"
+          if grep -Eq '^(W|E|Err):' "$d/update.log"; then echo "::error::apt update reported problems"; exit 1; fi
+          apt-cache "${apt_opts[@]}" policy bash apt python
+          (cd "$d/dl" && apt-get "${apt_opts[@]}" download bash) && ls -l "$d/dl"
       - name: Assemble bootstrap from the published repository
         run: |
           ./scripts/generate-bootstraps.sh --architectures ${{ matrix.arch }} \
