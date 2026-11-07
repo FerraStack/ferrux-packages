@@ -7,6 +7,7 @@
 # Usage: ferrux/fetch-repo.sh ARCH        (needs GH_TOKEN and GITHUB_REPOSITORY)
 set -euo pipefail
 cd "$(dirname "$(realpath "$0")")/.."
+. ferrux/lib.sh
 
 arch=$1
 tag="repo-$arch"
@@ -23,9 +24,7 @@ gh release download "$tag" -R "$repo" -p '*.deb' -D "$dl" --skip-existing
 shopt -s nullglob
 n=0
 for deb in "$dl"/*.deb; do
-	name=$(dpkg-deb -f "$deb" Package)
-	version=$(dpkg-deb -f "$deb" Version)
-	deb_arch=$(dpkg-deb -f "$deb" Architecture)
+	read -r name version deb_arch < <(deb_fields "$deb")
 	mv "$deb" "output/${name}_${version}_${deb_arch}.deb"
 	n=$((n + 1))
 done

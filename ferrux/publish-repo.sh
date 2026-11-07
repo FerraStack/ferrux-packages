@@ -19,6 +19,7 @@
 #        (the private key must already be imported into gpg).
 set -euo pipefail
 cd "$(dirname "$(realpath "$0")")/.."
+. ferrux/lib.sh
 
 arch=$1
 tag="repo-$arch"
@@ -35,9 +36,10 @@ mkdir -p "$pool" "$meta"
 # Newest version of each package (arch-specific and arch-independent).
 declare -A best_ver=() best_file=()
 shopt -s nullglob
+invalid=0
 for deb in output/*_"$arch".deb output/*_all.deb; do
-	name=$(dpkg-deb -f "$deb" Package)
-	ver=$(dpkg-deb -f "$deb" Version)
+	deb_check_control "$deb" || { invalid=1; continue; }
+	read -r name ver _ < <(deb_fields "$deb")
 	if [[ -z "${best_ver[$name]:-}" ]] || dpkg --compare-versions "$ver" gt "${best_ver[$name]}"; then
 		best_ver[$name]=$ver
 		best_file[$name]=$deb
@@ -104,3 +106,7 @@ for a in "${existing[@]}"; do
 done
 rm -rf "$work"
 echo "[ferrux] published https://github.com/$repo/releases/tag/$tag"
+if ((invalid)); then
+	echo "::error::debs with invalid control files were left out; fix their recipes"
+	exit 1
+fi

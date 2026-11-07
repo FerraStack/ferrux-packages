@@ -30,11 +30,11 @@ echo "[ferrux] ${#order[@]} packages in build order for $arch"
 # holds the full version, as termux_step_start_build compares it.
 ./scripts/run-docker.sh bash -c '
 	set -e
+	. ferrux/lib.sh
 	mkdir -p /data/data/.built-packages
 	shopt -s nullglob
 	for deb in output/*.deb; do
-		name=$(dpkg-deb -f "$deb" Package)
-		version=$(dpkg-deb -f "$deb" Version)
+		read -r name version _ < <(deb_fields "$deb")
 		echo "$version" > "/data/data/.built-packages/$name"
 	done
 	ls /data/data/.built-packages | wc -l | xargs echo "[ferrux] packages marked as built:"
