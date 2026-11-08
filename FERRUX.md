@@ -19,6 +19,7 @@ prefix is compiled into every binary.
 | `repo.json` | Points at this repository (never at termux.net, so no com.termux package can leak into a build) |
 | `packages/apt/build.sh` | Ships `etc/apt/sources.list.d/ferrux.sources` for our repository |
 | `packages/apt/build.sh` | Source from snapshot.debian.org (deb.debian.org dropped 3.3.3; same SHA-256) |
+| `packages/termux-tools/build.sh` | Exports `TERMUX_PREFIX` & co. to configure, which otherwise bakes in `com.termux` paths |
 | `packages/apr-util`, `packages/subversion` | Sources from archive.apache.org (downloads.apache.org drops old releases) |
 | `packages/libgnutls/libgnutls-dane.subpackage.sh` | One-line description (two lines made an invalid control file) |
 | `packages/termux-keyring/` | Contains only the Ferrux signing key (`ferrux-packages.gpg`) |
