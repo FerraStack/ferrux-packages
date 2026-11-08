@@ -64,7 +64,11 @@ push that touches recipes or build scripts, or by hand:
    `build-package.sh` call in the termux-packages Docker image
    (`ferrux/build.sh`), and publish (`ferrux/publish-repo.sh`). A segment stops
    starting new packages after 5 h 15 min, so three chained segments give a
-   cold build about 16 h; later runs rebuild only changed packages.
+   cold build about 16 h; later runs rebuild only changed packages (a cold
+   build of the current set takes about 1.5 h). Each package starts from an
+   **empty prefix** with only its declared dependencies extracted, like
+   upstream CI's fresh containers, so configure scripts cannot pick up
+   undeclared libraries left by earlier builds.
 2. **Bootstrap**: `scripts/generate-bootstraps.sh --flat-repository …` assembles
    `bootstrap-<arch>.zip` from the *published* debs, so the bootstrap always
    matches the repository.
