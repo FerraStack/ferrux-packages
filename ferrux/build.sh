@@ -52,7 +52,18 @@ for pkg in "${order[@]}"; do
 	echo "::group::build $pkg ($arch)"
 	start=$now
 	set +e
-	timeout --kill-after=60 "$left" ./scripts/run-docker.sh ./build-package.sh -C -a "$arch" "$pkg"
+	# Start every package from an empty prefix, like upstream CI's fresh
+	# container: build-package.sh then extracts exactly the declared
+	# dependencies from output/. Otherwise configure scripts auto-detect
+	# libraries left behind by earlier builds and the package links against
+	# something it does not depend on (seen: dpkg-deb needing libzstd).
+	timeout --kill-after=60 "$left" ./scripts/run-docker.sh bash -c '
+		set -e
+		. ./scripts/properties.sh > /dev/null
+		rm -rf "$TERMUX__PREFIX"
+		mkdir -p "$TERMUX__PREFIX"
+		exec ./build-package.sh -C -a "$1" "$2"
+	' build "$arch" "$pkg"
 	rc=$?
 	set -e
 	echo "::endgroup::"
