@@ -1,0 +1,36 @@
+# Top-level packages built for the Ferrux apt repository.
+# Dependencies (runtime and build) are added automatically, in build order,
+# by ferrux/buildorder.sh. One package directory name (under packages/) per
+# line; '#' starts a comment.
+
+# Bootstrap: the set scripts/generate-bootstraps.sh puts in the bootstrap zip.
+apt
+bash
+curl
+dash
+findutils
+gawk
+procps
+psmisc
+tar
+termux-exec
+termux-tools
+util-linux
+ed
+debianutils
+dos2unix
+inetutils
+nano
+net-tools
+patch
+unzip
+
+# Initial curated set (milestone M3).
+ca-certificates
+coreutils
+less
+openssl
+git
+python
+vim
+openssh

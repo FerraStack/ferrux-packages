@@ -3,6 +3,7 @@ TERMUX_PKG_DESCRIPTION="Basic system tools for Termux"
 TERMUX_PKG_LICENSE="GPL-3.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="3.0.9"
+TERMUX_PKG_REVISION=1
 TERMUX_PKG_SRCURL=https://github.com/termux-play-store/termux-tools/archive/refs/tags/${TERMUX_PKG_VERSION}.tar.gz
 TERMUX_PKG_SHA256=d275fbc736c936abc9a8460d4d310d34704406db03405cf96f82a62b082893a9
 TERMUX_PKG_ESSENTIAL=true
@@ -25,4 +26,12 @@ termux_step_pre_configure() {
 	done
 
 	autoreconf -vfi
+
+	# Ferrux: configure.ac reads these from the environment and otherwise falls
+	# back to com.termux paths (pkg, login, chsh, termux-info, profile.d, …).
+	export TERMUX_APP_PACKAGE="$TERMUX_APP__PACKAGE_NAME"
+	export TERMUX_BASE_DIR="$TERMUX__ROOTFS"
+	export TERMUX_CACHE_DIR
+	export TERMUX_PREFIX
+	export TERMUX_ANDROID_HOME="$TERMUX__HOME"
 }

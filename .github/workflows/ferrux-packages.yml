@@ -1,0 +1,165 @@
+# SPDX-License-Identifier: Apache-2.0
+# Builds the Ferrux package set (ferrux/packages.txt) for aarch64 and x86_64,
+# publishes the signed flat apt repositories (releases repo-<arch>) and, when
+# the bootstrap's packages changed, a new bootstrap release
+# (bootstrap-YYYY.MM.DD-rN) that the Ferrux app pins by SHA-256.
+#
+# The build is split into chained, time-boxed segments: each restores what is
+# already published and continues, so a cold build longer than the 6 h job
+# limit finishes in one run, and later runs only build what changed.
+name: Ferrux packages
+
+on:
+  push:
+    paths:
+      - "ferrux/**"
+      - "packages/**"
+      - "scripts/**"
+      - "build-package.sh"
+      - "repo.json"
+      - ".github/workflows/ferrux-*.yml"
+  workflow_dispatch:
+    inputs:
+      force_bootstrap:
+        description: "Publish a new bootstrap release even if its packages did not change"
+        type: boolean
+        default: false
+
+permissions: {}
+
+# One publisher at a time; never cancel a run that may be uploading.
+concurrency:
+  group: ferrux-packages
+  cancel-in-progress: false
+
+jobs:
+  segment-1:
+    uses: ./.github/workflows/ferrux-build-segment.yml
+    with:
+      segment: "1"
+    permissions:
+      contents: write
+    secrets: inherit
+  segment-2:
+    needs: segment-1
+    uses: ./.github/workflows/ferrux-build-segment.yml
+    with:
+      segment: "2"
+    permissions:
+      contents: write
+    secrets: inherit
+  segment-3:
+    needs: segment-2
+    uses: ./.github/workflows/ferrux-build-segment.yml
+    with:
+      segment: "3"
+    permissions:
+      contents: write
+    secrets: inherit
+
+  bootstrap:
+    name: Bootstrap ${{ matrix.arch }}
+    needs: segment-3
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        arch: [aarch64, x86_64]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - name: Check the published repository with apt
+        # Same sources entry as the apt package ships; proves the flat
+        # layout, the InRelease signature and the Filename URLs.
+        env:
+          ARCH: ${{ matrix.arch }}
+          URI: https://github.com/${{ github.repository }}/releases/download/repo-${{ matrix.arch }}/
+        run: |
+          d="$RUNNER_TEMP/apt-check"
+          mkdir -p "$d/sources" "$d/lists/partial" "$d/archives/partial" "$d/dl"
+          : > "$d/status"
+          printf 'Types: deb\nURIs: %s\nSuites: /\nSigned-By: %s\n' "$URI" "$PWD/packages/termux-keyring/ferrux-packages.gpg" > "$d/sources/ferrux.sources"
+          apt_opts=(
+            -o Dir::Etc::SourceList=/dev/null -o Dir::Etc::SourceParts="$d/sources"
+            -o Dir::State::Lists="$d/lists" -o Dir::State::status="$d/status"
+            -o Dir::State="$d" -o Dir::Cache="$d" -o Dir::Cache::Archives="$d/archives"
+            -o APT::Architecture="$ARCH" -o APT::Architectures::="$ARCH"
+            -o Debug::NoLocking=1
+          )
+          apt-get "${apt_opts[@]}" update 2>&1 | tee "$d/update.log"
+          if grep -Eq '^(W|E|Err):' "$d/update.log"; then echo "::error::apt update reported problems"; exit 1; fi
+          apt-cache "${apt_opts[@]}" policy bash apt python
+          (cd "$d/dl" && apt-get "${apt_opts[@]}" download bash) && ls -l "$d/dl"
+      - name: Assemble bootstrap from the published repository
+        run: |
+          ./scripts/generate-bootstraps.sh --architectures ${{ matrix.arch }} \
+            --flat-repository "https://github.com/${{ github.repository }}/releases/download/repo-@ARCH@"
+          ls -l bootstrap-*.zip
+      - name: Manifest
+        run: |
+          unzip -p bootstrap-${{ matrix.arch }}.zip var/lib/dpkg/status \
+            | awk '/^Package:/ {p=$2} /^Version:/ {print p, $2}' | sort > manifest-${{ matrix.arch }}.txt
+          cat manifest-${{ matrix.arch }}.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bootstrap-${{ matrix.arch }}
+          path: |
+            bootstrap-${{ matrix.arch }}.zip
+            manifest-${{ matrix.arch }}.txt
+          if-no-files-found: error
+
+  publish-bootstrap:
+    name: Publish bootstrap
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Compare with the latest bootstrap
+        id: cmp
+        run: |
+          cd dist
+          cat manifest-aarch64.txt manifest-x86_64.txt > manifest.txt
+          sha256sum bootstrap-*.zip > SHA256SUMS
+          cat SHA256SUMS
+          latest=$(gh release list -R "$REPO" --limit 100 --json tagName --jq '[.[] | select(.tagName | startswith("bootstrap-"))][0].tagName // ""')
+          echo "latest=$latest"
+          changed=true
+          if [ -n "$latest" ] && gh release download "$latest" -R "$REPO" -p manifest.txt -O ../previous-manifest.txt 2>/dev/null; then
+            if cmp -s manifest.txt ../previous-manifest.txt; then changed=false; fi
+          fi
+          if [ "${{ inputs.force_bootstrap }}" = "true" ]; then changed=true; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - name: Create release
+        if: steps.cmp.outputs.changed == 'true'
+        run: |
+          cd dist
+          base="bootstrap-$(date -u +%Y.%m.%d)"
+          n=1
+          while gh release view "$base-r$n" -R "$REPO" > /dev/null 2>&1; do n=$((n + 1)); done
+          tag="$base-r$n"
+          {
+            echo "Bootstrap archives for Ferrux (prefix \`/data/data/dev.ferrux/files/usr\`), assembled from the"
+            echo "\`repo-<arch>\` apt repositories by the Ferrux packages workflow."
+            echo
+            echo "Symlinks are listed in \`SYMLINKS.txt\` (\`target←link\`) inside each zip."
+            echo
+            echo '```'
+            cat SHA256SUMS
+            echo '```'
+          } > notes.md
+          gh release create "$tag" -R "$REPO" --target "$GITHUB_SHA" --latest=false \
+            --title "Ferrux bootstrap $tag" --notes-file notes.md \
+            bootstrap-aarch64.zip bootstrap-x86_64.zip SHA256SUMS manifest.txt
+          echo "### Published $tag" >> "$GITHUB_STEP_SUMMARY"
+          cat SHA256SUMS >> "$GITHUB_STEP_SUMMARY"

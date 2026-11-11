@@ -3,7 +3,8 @@ TERMUX_PKG_DESCRIPTION="Front-end for the dpkg package manager"
 TERMUX_PKG_LICENSE="GPL-2.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="3.3.3"
-TERMUX_PKG_SRCURL=https://deb.debian.org/debian/pool/main/a/apt/apt_${TERMUX_PKG_VERSION}.tar.xz
+# Ferrux: deb.debian.org drops superseded versions; snapshot.debian.org keeps them.
+TERMUX_PKG_SRCURL=https://snapshot.debian.org/archive/debian/20260814T202212Z/pool/main/a/apt/apt_${TERMUX_PKG_VERSION}.tar.xz
 TERMUX_PKG_SHA256=1c06b4a145d6117917c390c79fe7d27d9d92ee922101134ad6446717b0a1c28f
 # apt-key requires utilities from coreutils, findutils, gpgv, grep, sed.
 TERMUX_PKG_DEPENDS="coreutils, dpkg, findutils, gpgv, grep, libc++(>=30), openssl, liblzma, sed, termux-keyring, termux-licenses, xxhash"
@@ -15,7 +16,7 @@ TERMUX_PKG_SUGGESTS="gnupg"
 TERMUX_PKG_ESSENTIAL=true
 
 TERMUX_PKG_CONFFILES="
-etc/apt/sources.list.d/termux.sources
+etc/apt/sources.list.d/ferrux.sources
 "
 
 TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
@@ -76,14 +77,15 @@ termux_step_pre_configure() {
 
 termux_step_post_make_install() {
 	mkdir -p "$TERMUX_PREFIX"/etc/apt/sources.list.d
+	# Ferrux: a flat repository (one per architecture) published as GitHub
+	# Release assets by .github/workflows/ferrux-packages.yml.
 	{
-		echo "# The main termux repository"
-		echo "Components: main"
-		echo "Signed-By: $TERMUX_PREFIX/etc/apt/trusted.gpg.d/termux-packages.gpg"
-		echo "Suites: stable"
+		echo "# The Ferrux package repository"
 		echo "Types: deb"
-		echo "URIs: https://termux.net"
-	} > $TERMUX_PREFIX/etc/apt/sources.list.d/termux.sources
+		echo "URIs: https://github.com/FerraStack/ferrux-packages/releases/download/repo-${TERMUX_ARCH}/"
+		echo "Suites: /"
+		echo "Signed-By: $TERMUX_PREFIX/etc/apt/trusted.gpg.d/ferrux-packages.gpg"
+	} > $TERMUX_PREFIX/etc/apt/sources.list.d/ferrux.sources
 
 	# apt-transport-tor
 	ln -sfr $TERMUX_PREFIX/lib/apt/methods/http $TERMUX_PREFIX/lib/apt/methods/tor

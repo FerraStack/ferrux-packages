@@ -45,6 +45,8 @@ for cmd in ar awk curl grep gzip find sed tar xargs xz zip jq; do
 done
 
 TERMUX_BUILD_BOOTSTRAPS=false
+FLAT_REPOSITORY=false
+FLAT_REPOSITORY_TEMPLATE=""
 
 # Download package lists from remote repository.
 read_package_list_deb() {
@@ -52,9 +54,14 @@ read_package_list_deb() {
 	for architecture in "$1"; do
 		if [ ! -e "${BOOTSTRAP_TMPDIR}/packages.${architecture}" ]; then
 			echo "[*] Downloading package list for architecture '${architecture}'..."
+			local packages_url="${REPO_BASE_URL}/dists/stable/main/binary-${architecture}/Packages"
+			if [ "${FLAT_REPOSITORY}" = true ]; then
+				# Ferrux: flat repository, Packages next to the debs.
+				packages_url="${REPO_BASE_URL}/Packages"
+			fi
 			curl --fail --location \
 				--output "${BOOTSTRAP_TMPDIR}/packages.${architecture}" \
-				"${REPO_BASE_URL}/dists/stable/main/binary-${architecture}/Packages"
+				"${packages_url}"
 			echo >> "${BOOTSTRAP_TMPDIR}/packages.${architecture}"
 		fi
 
@@ -386,6 +393,19 @@ while (($# > 0)); do
 				exit 1
 			fi
 			;;
+		--flat-repository)
+			# Ferrux: URL of a flat apt repository; '@ARCH@' is replaced
+			# by each architecture.
+			if [ $# -gt 1 ] && [ -n "$2" ] && [[ $2 != -* ]]; then
+				FLAT_REPOSITORY=true
+				FLAT_REPOSITORY_TEMPLATE="$2"
+				shift 1
+			else
+				echo "[!] Option '--flat-repository' requires an argument."
+				show_usage
+				exit 1
+			fi
+			;;
 		*)
 			echo "[!] Got unknown option '$1'"
 			show_usage
@@ -410,6 +430,10 @@ for package_arch in "${TERMUX_ARCHITECTURES[@]}"; do
 	# Ensure newly built packages:
 	if [ "$TERMUX_BUILD_BOOTSTRAPS" = true ]; then
 		rm -Rf output/
+	fi
+
+	if [ "${FLAT_REPOSITORY}" = true ]; then
+		REPO_BASE_URL="${FLAT_REPOSITORY_TEMPLATE//@ARCH@/$package_arch}"
 	fi
 
 	PATH_DB_PACKAGES="$BOOTSTRAP_TMPDIR/main_${package_arch}.json"
@@ -481,7 +505,8 @@ EOF
 
 	# Core utilities.
 	pull_package bash # Used by `termux-bootstrap-second-stage.sh`
-	pull_package command-not-found
+	# Ferrux: command-not-found is left out; its database lists Termux's
+	# packages, most of which the Ferrux repository does not carry.
 	pull_package curl
 	pull_package dash
 	pull_package findutils
